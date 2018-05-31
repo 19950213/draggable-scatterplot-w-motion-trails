@@ -1,0 +1,40 @@
+circle {
+    stroke: black;
+    stroke-width: 1px;
+}
+
+.label {
+    font: 500 11px "Helvetica Neue";
+    fill: #ddd;
+}
+
+.year.label {
+    font-size: 196px
+}
+
+.nation.label {
+    font-size: 96px;
+}
+
+.axis {
+    stroke: black;
+    stroke-width: 0.5px;
+}
+
+.axis path {
+    fill: none;
+}
+
+.axis text {
+    font-size: 10px;
+}
+
+#slider {
+    margin: auto;
+}
+
+.lineTrajectory {
+    fill: none;
+    stroke: lightgrey;
+    stroke-width: 1px;
+}
