@@ -30,6 +30,7 @@ function start(gdp, life, pop, group) {
         var name = ob["Entity"];
         if (map[name]) {
             map[name]["group"] = ob["Group"];
+            map[name]["name"] = name;
         }
     });
     for (var name_1 in map) {
@@ -54,6 +55,14 @@ function start(gdp, life, pop, group) {
             }
         }
     }
+    //order: nations of large population painted beneath
+    var nations = [];
+    for (var name_2 in map) {
+        nations.push(map[name_2]);
+    }
+    nations.sort(function (a, b) {
+        return b.pop[span - 1] - a.pop[span - 1];
+    });
     //produce image
     var gRoot = document.createElementNS("http://www.w3.org/2000/svg", "g");
     var $gRoot = $(gRoot);
@@ -100,6 +109,9 @@ function start(gdp, life, pop, group) {
         var index = Math.floor(yearLabelScale.cal(x));
         update(index);
     });
+    //trails
+    var gTrail = createSVGElement("g");
+    $gRoot.append(gTrail);
     //scales
     var scaleX = new Scale([getMin("gdp"), getMax("gdp")], [0, width - left], "log"), scaleY = new Scale([getMin("life"), getMax("life")], [height - top, 0], "linear"), scaleR = new Scale([getMin("pop"), getMax("pop")], [0, 65], "sqrt");
     //colors
@@ -116,34 +128,52 @@ function start(gdp, life, pop, group) {
     var gDots = document.createElementNS("http://www.w3.org/2000/svg", "g");
     $gRoot.append(gDots);
     $(gDots).attr("class", "dots");
-    var _loop_1 = function (name_2) {
-        var nation = map[name_2];
-        var d = new Data(name_2, nation.group, nation.gdp, nation.life, nation.pop), c = new Circle(d, scaleX, scaleY, scaleR);
+    nations.forEach(function (nation) {
+        var d = new Data(nation.name, nation.group, nation.gdp, nation.life, nation.pop), c = new Circle(d, scaleX, scaleY, scaleR);
         nation.circle = c;
         var path = createSVGElement("path");
         $(path)
-            .attr("d", c.trail())
+            .attr("d", c.getTrail())
             .attr("class", "lineTrajectory");
         nation.trail = path;
         c.appendTo(gDots);
         c.update(0);
         $(c.circle)
+            .click(function () {
+        })
             .mouseenter(function () {
-            $nationLabel.text(name_2);
-            //draw trail
-            $(nation.path).appendTo($gRoot);
+            nations.forEach(function (n) {
+                if (n !== nation)
+                    n.circle.deemphasize();
+            });
+            $nationLabel.text(nation.name);
+            $(nation.trail).prependTo(gTrail); //draw trail
             //animate color change of trail
+            var points = c.getPoints(), i = 0, len = points.length;
+            nation.interval = setInterval(drawSegment, 16);
+            function drawSegment() {
+                var trailSegment = createSVGElement("path");
+                $(trailSegment)
+                    .attr("class", "trailSegment")
+                    .attr("d", "M " + points[i].toString() + " L " + points[i + 1].toString())
+                    .appendTo(gTrail);
+                if (++i >= len - 1) {
+                    clearInterval(nation.interval);
+                }
+            }
         })
             .mouseleave(function () {
+            nations.forEach(function (n) {
+                n.circle.reemphasize();
+            });
             $nationLabel.text("");
-            //remove trail
-            $(nation.path).detach();
             //stop uncompleted animation if any
+            clearInterval(nation.interval);
+            //remove trail
+            $(nation.trail).detach();
+            $(gTrail).html("");
         });
-    };
-    for (var name_2 in map) {
-        _loop_1(name_2);
-    }
+    });
     //slider
     var $slider = $("#slider");
     $slider.change(function () {
@@ -336,9 +366,9 @@ var Circle = /** @class */ (function () {
         $(this.circle)
             .attr("cx", datum[0].x)
             .attr("cy", datum[0].y)
-            .attr("r", datum[1]);
+            .attr("r", datum[1] < 0 ? 0 : datum[1]);
     };
-    Circle.prototype.trail = function () {
+    Circle.prototype.getTrail = function () {
         var len = this.data.length;
         var path = "M " + this.data[0][0].toString();
         for (var i = 1; i < len; i++) {
@@ -346,6 +376,16 @@ var Circle = /** @class */ (function () {
             path += "L " + datum[0].toString();
         }
         return path;
+    };
+    Circle.prototype.getPoints = function () {
+        var points = this.data.map(function (datum) { return datum[0]; });
+        return points;
+    };
+    Circle.prototype.deemphasize = function () {
+        $(this.circle).attr("class", "notHovered");
+    };
+    Circle.prototype.reemphasize = function () {
+        $(this.circle).attr("class", "");
     };
     return Circle;
 }());

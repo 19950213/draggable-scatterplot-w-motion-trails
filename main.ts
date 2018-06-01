@@ -41,6 +41,7 @@ function start(gdp, life, pop, group) {
         let name: string = ob["Entity"];
         if (map[name]) {
             map[name]["group"] = ob["Group"];
+            map[name]["name"] = name;
         }
     });
 
@@ -70,6 +71,15 @@ function start(gdp, life, pop, group) {
             }
         }
     }
+    //order: nations of large population painted beneath
+
+    let nations: Array<Nation> = [];
+    for (let name in map) {
+        nations.push(map[name]);
+    }
+    nations.sort((a, b) => {
+        return b.pop[span - 1] - a.pop[span - 1];
+    });
 
     //produce image
     let gRoot = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -122,6 +132,10 @@ function start(gdp, life, pop, group) {
             update(index);
         });
 
+    //trails
+    let gTrail = createSVGElement("g");
+    $gRoot.append(gTrail);
+
     //scales
     let scaleX = new Scale([getMin("gdp"), getMax("gdp")], [0, width - left], "log"),
         scaleY = new Scale([getMin("life"), getMax("life")], [height - top, 0], "linear"),
@@ -143,41 +157,65 @@ function start(gdp, life, pop, group) {
     $gRoot.append(gDots);
     $(gDots).attr("class", "dots");
 
-    for (let name in map) {
-        const nation = map[name];
-        let d = new Data(name, nation.group, nation.gdp, nation.life, nation.pop),
+    nations.forEach(nation => {
+        let d = new Data(nation.name, nation.group, nation.gdp, nation.life, nation.pop),
             c = new Circle(d, scaleX, scaleY, scaleR);
         nation.circle = c;
 
         let path = createSVGElement("path");
         $(path)
-            .attr("d", c.trail())
+            .attr("d", c.getTrail())
             .attr("class", "lineTrajectory");
-        nation.trail = path;
+        nation.trail = path as SVGPathElement;
 
         c.appendTo(gDots);
         c.update(0);
         $(c.circle)
+            .click(function () {
+
+            })
             .mouseenter(function () {
-                $nationLabel.text(name);
-                //draw trail
-                $(nation.path).appendTo($gRoot);
+                nations.forEach(n => {
+                    if (n !== nation)
+                        n.circle.deemphasize();
+                });
+                $nationLabel.text(nation.name);
+                $(nation.trail).prependTo(gTrail); //draw trail
+
                 //animate color change of trail
+                let points = c.getPoints(),
+                    i = 0,
+                    len = points.length;
+                nation.interval = setInterval(drawSegment, 16);
+                function drawSegment() {
+                    let trailSegment = createSVGElement("path");
+                    $(trailSegment)
+                        .attr("class", "trailSegment")
+                        .attr("d", "M " + points[i].toString() + " L " + points[i + 1].toString())
+                        .appendTo(gTrail);
+                    if (++i >= len - 1) {
+                        clearInterval(nation.interval);
+                    }
+                }
             })
             .mouseleave(function () {
+                nations.forEach(n => {
+                    n.circle.reemphasize();
+                });
                 $nationLabel.text("");
-                //remove trail
-                $(nation.path).detach();
                 //stop uncompleted animation if any
+                clearInterval(nation.interval);
+                //remove trail
+                $(nation.trail).detach();
+                $(gTrail).html("");
             })
-    }
+    })
 
     //slider
     let $slider = $("#slider");
     $slider.change(function () {
         update(+$slider.val());
     });
-
 
     function update(index) {
         for (let name in map) {
@@ -241,6 +279,17 @@ function start(gdp, life, pop, group) {
     function createSVGElement(tag: string) {
         return document.createElementNS("http://www.w3.org/2000/svg", tag);
     }
+}
+
+interface Nation {
+    name: string;
+    group: string;
+    gdp: Array<number>;
+    life: Array<number>;
+    pop: Array<number>;
+    circle: Circle;
+    trail: SVGPathElement;
+    interval;
 }
 
 class Interpolator {
@@ -346,7 +395,7 @@ class Point {
 class Data {
     name: string;
     group: string;
-    data: Array<[number, number, number]>;
+    data: Array<Array<number>>;
     constructor(name: string, group: string, attr1: number[], attr2: number[], attr3: number[]) {
         this.name = name;
         this.group = group;
@@ -390,9 +439,9 @@ class Circle {
         $(this.circle)
             .attr("cx", datum[0].x)
             .attr("cy", datum[0].y)
-            .attr("r", datum[1]);
+            .attr("r", datum[1] < 0 ? 0 : datum[1]);
     }
-    trail(): string {
+    getTrail(): string {
         let len = this.data.length;
         let path = "M " + this.data[0][0].toString();
 
@@ -401,5 +450,15 @@ class Circle {
             path += "L " + datum[0].toString();
         }
         return path;
+    }
+    getPoints(): Array<Point> {
+        let points: Array<Point> = this.data.map(datum => datum[0]);
+        return points;
+    }
+    deemphasize(): void {
+        $(this.circle).attr("class", "notHovered");
+    }
+    reemphasize():void{
+        $(this.circle).attr("class", "");
     }
 }

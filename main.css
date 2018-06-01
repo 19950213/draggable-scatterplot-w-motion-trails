@@ -3,6 +3,14 @@ circle {
     stroke-width: 1px;
 }
 
+circle.selected {
+    stroke-width: 3px;
+}
+
+circle.notHovered {
+    opacity: 0.4;
+}
+
 .label {
     font: 500 11px "Helvetica Neue";
     fill: #ddd;
@@ -36,5 +44,11 @@ circle {
 .lineTrajectory {
     fill: none;
     stroke: lightgrey;
-    stroke-width: 1px;
+    stroke-width: 2px;
+}
+
+.trailSegment {
+    fill: none;
+    stroke: grey;
+    stroke-width: 2px;
 }
