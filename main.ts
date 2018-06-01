@@ -31,6 +31,8 @@ function start(gdp, life, pop, group) {
         span = endYear - startYear + 1,
         threshold = 20;
 
+    let mouseIsDown: boolean = false;
+
     //preprocess data
     //to map
     let map = {};
@@ -127,9 +129,11 @@ function start(gdp, life, pop, group) {
         .attr("y", 440)
         .text(1800)
         .mousemove(function (evt) {
-            let x = evt.pageX - Math.round($(evt.target).offset().left);
-            let index = Math.floor(yearLabelScale.cal(x));
-            update(index);
+            if (!mouseIsDown) {
+                let x = evt.pageX - Math.round($(evt.target).offset().left);
+                let index = Math.floor(yearLabelScale.cal(x));
+                update(index);
+            }
         });
 
     //trails
@@ -166,22 +170,35 @@ function start(gdp, life, pop, group) {
         $(path)
             .attr("d", c.getTrail())
             .attr("class", "lineTrajectory");
-        nation.trail = path as SVGPathElement;
+        nation.hoverTrail = path as SVGPathElement;
+
+        path = createSVGElement("path");
+        $(path)
+            .attr("d", c.getTrail())
+            .attr("class", "lineTrajectory");
+        nation.selectTrail = path as SVGPathElement;
 
         c.appendTo(gDots);
         c.update(0);
         $(c.circle)
             .click(function () {
-
+                if ($(nation.selectTrail).parent()[0]) {
+                    $(nation.selectTrail).detach();
+                }
+                else {
+                    $(nation.selectTrail).prependTo(gRoot);
+                }
             })
             .mouseenter(function () {
+                //hightlight hovered circle
                 nations.forEach(n => {
                     if (n !== nation)
                         n.circle.deemphasize();
                 });
+                //show nation name
                 $nationLabel.text(nation.name);
-                $(nation.trail).prependTo(gTrail); //draw trail
-
+                //draw trail
+                $(nation.hoverTrail).prependTo(gTrail);
                 //animate color change of trail
                 let points = c.getPoints(),
                     i = 0,
@@ -206,7 +223,7 @@ function start(gdp, life, pop, group) {
                 //stop uncompleted animation if any
                 clearInterval(nation.interval);
                 //remove trail
-                $(nation.trail).detach();
+                $(nation.hoverTrail).detach();
                 $(gTrail).html("");
             })
     })
@@ -288,7 +305,8 @@ interface Nation {
     life: Array<number>;
     pop: Array<number>;
     circle: Circle;
-    trail: SVGPathElement;
+    hoverTrail: SVGPathElement;
+    selectTrail: SVGPathElement;
     interval;
 }
 
@@ -458,7 +476,7 @@ class Circle {
     deemphasize(): void {
         $(this.circle).attr("class", "notHovered");
     }
-    reemphasize():void{
+    reemphasize(): void {
         $(this.circle).attr("class", "");
     }
 }

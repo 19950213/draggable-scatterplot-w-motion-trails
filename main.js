@@ -135,19 +135,34 @@ function start(gdp, life, pop, group) {
         $(path)
             .attr("d", c.getTrail())
             .attr("class", "lineTrajectory");
-        nation.trail = path;
+        nation.hoverTrail = path;
+        path = createSVGElement("path");
+        $(path)
+            .attr("d", c.getTrail())
+            .attr("class", "lineTrajectory");
+        nation.selectTrail = path;
         c.appendTo(gDots);
         c.update(0);
         $(c.circle)
             .click(function () {
+            console.log($(nation.selectTrail).parent());
+            if ($(nation.selectTrail).parent()[0]) {
+                $(nation.selectTrail).detach();
+            }
+            else {
+                $(nation.selectTrail).prependTo(gRoot);
+            }
         })
             .mouseenter(function () {
+            //hightlight hovered circle
             nations.forEach(function (n) {
                 if (n !== nation)
                     n.circle.deemphasize();
             });
+            //show nation name
             $nationLabel.text(nation.name);
-            $(nation.trail).prependTo(gTrail); //draw trail
+            //draw trail
+            $(nation.hoverTrail).prependTo(gTrail);
             //animate color change of trail
             var points = c.getPoints(), i = 0, len = points.length;
             nation.interval = setInterval(drawSegment, 16);
@@ -170,7 +185,7 @@ function start(gdp, life, pop, group) {
             //stop uncompleted animation if any
             clearInterval(nation.interval);
             //remove trail
-            $(nation.trail).detach();
+            $(nation.hoverTrail).detach();
             $(gTrail).html("");
         });
     });
