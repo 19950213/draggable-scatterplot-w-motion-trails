@@ -18,8 +18,39 @@ $(document).ready(function () {
     });
 });
 function start(gdp, life, pop, group) {
-    var $svg = $("svg"), svg = $svg[0], width = +$svg.attr("width"), height = +$svg.attr("height"), left = 40, top = 20;
+    var $svg = $("svg"), width = +$svg.attr("width"), height = +$svg.attr("height"), left = 40, top = 20;
     var startYear = 1800, endYear = 2008, span = endYear - startYear + 1, threshold = 20;
+    var selected = null;
+    var mouseDownEvent = null;
+    var isSelected = false;
+    $svg
+        .mouseup(function (evt) {
+        selected = null;
+        // if (evt.target === $svg[0]) {
+        nations.forEach(function (n) {
+            n.point.reemphasize();
+        });
+        $nationLabel.text("");
+        // }
+    })
+        .mousemove(function (evt) {
+        if (selected) {
+            evt.preventDefault();
+            var offset = $gRoot.offset(), p_1 = new Point(evt.pageX - offset.left, evt.pageY - offset.top);
+            //the index of the nearest point on the trail of the selected
+            var points = map[$("title", selected).text()].point.getPoints();
+            var indexDistMin_1 = 0;
+            var distMin_1 = Infinity;
+            points.forEach(function (point, index) {
+                var distTemp = p_1.getDistance(point);
+                if (distTemp < distMin_1) {
+                    distMin_1 = distTemp;
+                    indexDistMin_1 = index;
+                }
+            });
+            update(indexDistMin_1);
+        }
+    });
     //preprocess data
     //to map
     var map = {};
@@ -64,54 +95,59 @@ function start(gdp, life, pop, group) {
         return b.pop[span - 1] - a.pop[span - 1];
     });
     //produce image
-    var gRoot = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    var $gRoot = $(gRoot);
-    $(svg).append(gRoot);
-    $gRoot.attr("transform", "translate(" + [left, top] + ")");
-    var xLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    $gRoot.append(xLabel);
-    $(xLabel)
+    var $gRoot = create$SVGElement("g")
+        .attr("transform", "translate(" + [left, top] + ")")
+        .appendTo($svg);
+    //x label
+    create$SVGElement("text")
         .attr("class", "x label")
         .attr("text-anchor", "end")
         .attr("x", 940)
         .attr("y", 455)
-        .text("income per capita, inflation-adjusted (dollars)");
-    var yLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    $gRoot.append(yLabel);
-    $(yLabel)
+        .text("income per capita, inflation-adjusted (dollars)")
+        .appendTo($gRoot);
+    //y label
+    create$SVGElement("text")
         .attr("class", "y label")
         .attr("text-anchor", "end")
         .attr("y", 6)
         .attr("dy", ".75em")
         .attr("transform", "rotate(-90)")
-        .text("life expectancy (years)");
+        .text("life expectancy (years)")
+        .appendTo($gRoot);
     //nation label
-    var nationLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    $gRoot.append(nationLabel);
-    var $nationLabel = $(nationLabel);
-    $nationLabel
+    var $nationLabel = create$SVGElement("text")
         .attr("class", "nation label")
         .attr("text-anchor", "start")
         .attr("x", 20)
-        .attr("y", 80);
+        .attr("y", 80)
+        .appendTo($gRoot);
     //year label
-    var yearLabelScale = new Scale([0, 460], [0, span], "linear");
-    var yearLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    $gRoot.append(yearLabel);
-    $(yearLabel)
+    var $gYearLabel = create$SVGElement("g").attr("transform", "translate(" + [500, 280] + ")").appendTo($gRoot);
+    var scaleYear = new Scale([0, 450], [0, span], "linear");
+    var $yearLabel = create$SVGElement("text")
         .attr("class", "year label")
-        .attr("text-anchor", "end")
-        .attr("x", 940)
-        .attr("y", 440)
+        // .attr("x", 940)
+        .attr("y", 150)
         .text(1800)
+        .appendTo($gYearLabel);
+    create$SVGElement("rect")
+        .attr("y", 25)
+        .attr("width", 450)
+        .attr("height", 100)
+        .css("fill", "transparent")
         .mousemove(function (evt) {
-        var x = evt.pageX - Math.round($(evt.target).offset().left);
-        var index = Math.floor(yearLabelScale.cal(x));
-        update(index);
-    });
+        if (!selected) {
+            var x = evt.pageX - Math.round($(evt.target).offset().left);
+            var index = Math.floor(scaleYear.cal(x));
+            update(index);
+        }
+    })
+        .appendTo($gYearLabel);
     //trails
-    var gTrail = createSVGElement("g");
-    $gRoot.append(gTrail);
+    var $gTrail = create$SVGElement("g").appendTo($gRoot);
+    var $gTrailSelected = create$SVGElement("g").appendTo($gRoot);
+    //dots
     //scales
     var scaleX = new Scale([getMin("gdp"), getMax("gdp")], [0, width - left], "log"), scaleY = new Scale([getMin("life"), getMax("life")], [height - top, 0], "linear"), scaleR = new Scale([getMin("pop"), getMax("pop")], [0, 65], "sqrt");
     //colors
@@ -124,83 +160,102 @@ function start(gdp, life, pop, group) {
         ["East Asia & Pacific", "red"]
     ];
     Circle.setColors(new Map(colors));
-    //dots
-    var gDots = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    $gRoot.append(gDots);
-    $(gDots).attr("class", "dots");
+    var $gDots = create$SVGElement("g")
+        .attr("class", "dots")
+        .appendTo($gRoot);
     nations.forEach(function (nation) {
         var d = new Data(nation.name, nation.group, nation.gdp, nation.life, nation.pop), c = new Circle(d, scaleX, scaleY, scaleR);
-        nation.circle = c;
-        var path = createSVGElement("path");
-        $(path)
-            .attr("d", c.getTrail())
+        nation.point = c;
+        var trail = c.getTrail();
+        nation.$hoverTrail = create$SVGElement("path")
+            .attr("d", trail)
             .attr("class", "lineTrajectory");
-        nation.hoverTrail = path;
-        path = createSVGElement("path");
-        $(path)
-            .attr("d", c.getTrail())
+        nation.$selectTrail = create$SVGElement("path")
+            .attr("d", trail)
             .attr("class", "lineTrajectory");
-        nation.selectTrail = path;
-        c.appendTo(gDots);
+        c.appendTo($gDots);
         c.update(0);
-        $(c.circle)
-            .click(function () {
-            console.log($(nation.selectTrail).parent());
-            if ($(nation.selectTrail).parent()[0]) {
-                $(nation.selectTrail).detach();
+        c.$circle
+            .mousedown(function (evt) {
+            selected = evt.target;
+            mouseDownEvent = evt;
+            isSelected = nation.point.$circle[0].classList.contains("selected");
+            if (!nation.$selectTrail.parent()[0]) {
+                nation.$selectTrail.prependTo($gTrailSelected);
+                nation.point.$circle[0].classList.add("selected");
             }
-            else {
-                $(nation.selectTrail).prependTo(gRoot);
+            nations.forEach(function (n) {
+                if (n !== nation)
+                    n.point.deemphasize();
+            });
+            $nationLabel.text(nation.name);
+        })
+            // .click(function () {
+            // })
+            .mouseup(function (evt) {
+            if (mouseDownEvent && mouseDownEvent.pageX === evt.pageX
+                && mouseDownEvent.pageY === evt.pageY) {
+                if (isSelected && nation.$selectTrail.parent()[0]) {
+                    nation.$selectTrail.detach();
+                    nation.point.$circle[0].classList.remove("selected");
+                }
+                else if (!isSelected && !nation.$selectTrail.parent()[0]) {
+                    nation.$selectTrail.prependTo($gTrailSelected);
+                    nation.point.$circle[0].classList.add("selected");
+                }
             }
         })
             .mouseenter(function () {
-            //hightlight hovered circle
-            nations.forEach(function (n) {
-                if (n !== nation)
-                    n.circle.deemphasize();
-            });
-            //show nation name
-            $nationLabel.text(nation.name);
-            //draw trail
-            $(nation.hoverTrail).prependTo(gTrail);
-            //animate color change of trail
-            var points = c.getPoints(), i = 0, len = points.length;
-            nation.interval = setInterval(drawSegment, 16);
-            function drawSegment() {
-                var trailSegment = createSVGElement("path");
-                $(trailSegment)
-                    .attr("class", "trailSegment")
-                    .attr("d", "M " + points[i].toString() + " L " + points[i + 1].toString())
-                    .appendTo(gTrail);
-                if (++i >= len - 1) {
-                    clearInterval(nation.interval);
+            if (!selected) {
+                //hightlight hovered circle
+                nations.forEach(function (n) {
+                    if (n !== nation)
+                        n.point.deemphasize();
+                });
+                //show nation name
+                $nationLabel.text(nation.name);
+                //draw trail
+                nation.$hoverTrail.prependTo($gTrail);
+                //animate color change of trail
+                var points_1 = c.getPoints(), i_1 = 0, len_1 = points_1.length;
+                nation.intervalNumber = setInterval(drawSegment, 16);
+                function drawSegment() {
+                    var $trailSegment = create$SVGElement("path")
+                        .attr("class", "trailSegment")
+                        .attr("d", "M " + points_1[i_1].toString() + " L " + points_1[i_1 + 1].toString())
+                        .appendTo($gTrail);
+                    if (++i_1 >= len_1 - 1) {
+                        clearInterval(nation.intervalNumber);
+                    }
                 }
             }
         })
             .mouseleave(function () {
-            nations.forEach(function (n) {
-                n.circle.reemphasize();
-            });
-            $nationLabel.text("");
+            if (!selected) {
+                nations.forEach(function (n) {
+                    n.point.reemphasize();
+                });
+                $nationLabel.text("");
+            }
             //stop uncompleted animation if any
-            clearInterval(nation.interval);
+            clearInterval(nation.intervalNumber);
             //remove trail
-            $(nation.hoverTrail).detach();
-            $(gTrail).html("");
+            nation.$hoverTrail.detach();
+            $gTrail.html("");
+            // }
         });
     });
     //slider
-    var $slider = $("#slider");
-    $slider.change(function () {
-        update(+$slider.val());
-    });
+    // let $slider = $("#slider");
+    // $slider.change(function () {
+    //     update(+$slider.val());
+    // });
     function update(index) {
-        for (var name_3 in map) {
-            var nation = map[name_3];
-            nation.circle.update(index);
-        }
-        $(yearLabel).text(index + startYear);
-        $slider.val(index); //will this cause endless loop?
+        nations.forEach(function (nation) {
+            nation.point.update(index);
+        });
+        $yearLabel.text(index + startYear);
+        // $slider.val(index); //will this cause endless loop?
     }
     function addAttr(attr, getName, setName, isNew) {
         attr.forEach(function (ob) {
@@ -235,29 +290,27 @@ function start(gdp, life, pop, group) {
     }
     function getMin(attr) {
         var min = Infinity;
-        for (var name_4 in map) {
-            var nation = map[name_4];
+        nations.forEach(function (nation) {
             var locMin = nation[attr].reduce(function (min, cur) { return Math.min(min, cur); }, Infinity);
             if (locMin < min) {
                 min = locMin;
             }
-        }
+        });
         return min;
     }
     function getMax(attr) {
         var max = -Infinity;
-        for (var name_5 in map) {
-            var nation = map[name_5];
+        nations.forEach(function (nation) {
             var locMax = nation[attr].reduce(function (max, cur) { return Math.max(max, cur); }, -Infinity);
             if (locMax > max) {
                 max = locMax;
             }
-        }
+        });
         return max;
     }
-    function createSVGElement(tag) {
-        return document.createElementNS("http://www.w3.org/2000/svg", tag);
-    }
+}
+function create$SVGElement(tag) {
+    return $(document.createElementNS("http://www.w3.org/2000/svg", tag));
 }
 var Interpolator = /** @class */ (function () {
     function Interpolator(array) {
@@ -339,6 +392,10 @@ var Point = /** @class */ (function () {
         this.x = x;
         this.y = y;
     }
+    Point.prototype.getDistance = function (p) {
+        var dx = p.x - this.x, dy = p.y - this.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    };
     Point.prototype.toString = function () {
         return this.x + ", " + this.y;
     };
@@ -358,49 +415,44 @@ var Data = /** @class */ (function () {
 var Circle = /** @class */ (function () {
     function Circle(data, scaleX, scaleY, scaleR) {
         this.color = Circle.colors.get(data.group);
-        this.data = data.data.map(function (datum) {
-            return [new Point(scaleX.cal(datum[0]), scaleY.cal(datum[1])),
-                scaleR.cal(datum[2])];
-        });
-        var title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-        $(title).text(data.name);
-        this.circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        $(this.circle)
-            .css("fill", this.color)
-            //events?
-            .append(title);
+        this.points = data.data.map(function (datum) { return new Point(scaleX.cal(datum[0]), scaleY.cal(datum[1])); });
+        this.radii = data.data.map(function (datum) { return scaleR.cal(datum[2]); });
+        this.$circle = create$SVGElement("circle").css("fill", this.color);
+        create$SVGElement("title").text(data.name).appendTo(this.$circle);
     }
     Circle.setColors = function (colors) {
         this.colors = colors;
     };
     Circle.prototype.appendTo = function (parent) {
-        $(parent).append(this.circle);
+        this.$circle.appendTo(parent);
     };
     Circle.prototype.update = function (index) {
-        var datum = this.data[index];
-        $(this.circle)
-            .attr("cx", datum[0].x)
-            .attr("cy", datum[0].y)
-            .attr("r", datum[1] < 0 ? 0 : datum[1]);
+        var point = this.points[index], radius = this.radii[index];
+        this.$circle
+            .attr("cx", point.x)
+            .attr("cy", point.y)
+            .attr("r", radius < 0 ? 0 : radius);
     };
     Circle.prototype.getTrail = function () {
-        var len = this.data.length;
-        var path = "M " + this.data[0][0].toString();
+        var len = this.points.length;
+        var path = "M " + this.points[0].toString();
         for (var i = 1; i < len; i++) {
-            var datum = this.data[i];
-            path += "L " + datum[0].toString();
+            var point = this.points[i];
+            path += "L " + point.toString();
         }
         return path;
     };
     Circle.prototype.getPoints = function () {
-        var points = this.data.map(function (datum) { return datum[0]; });
+        var points = this.points; //?
         return points;
     };
     Circle.prototype.deemphasize = function () {
-        $(this.circle).attr("class", "notHovered");
+        // this.$circle.attr("class", "notHovered");
+        this.$circle[0].classList.add("notHovered");
     };
     Circle.prototype.reemphasize = function () {
-        $(this.circle).attr("class", "");
+        // this.$circle.attr("class", "");
+        this.$circle[0].classList.remove("notHovered");
     };
     return Circle;
 }());

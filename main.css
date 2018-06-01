@@ -24,7 +24,7 @@ circle.notHovered {
     font-size: 96px;
 }
 
-.axis {
+.axis line, path{
     stroke: black;
     stroke-width: 0.5px;
 }
@@ -50,6 +50,7 @@ circle.notHovered {
 
 .trailSegment {
     fill: none;
-    stroke: grey;
+    stroke: black;
+    opacity: 0.3;
     stroke-width: 2px;
 }
