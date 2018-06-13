@@ -24,23 +24,6 @@ circle.notHovered {
     font-size: 96px;
 }
 
-.axis line, path{
-    stroke: black;
-    stroke-width: 0.5px;
-}
-
-.axis path {
-    fill: none;
-}
-
-.axis text {
-    font-size: 10px;
-}
-
-#slider {
-    margin: auto;
-}
-
 .lineTrajectory {
     fill: none;
     stroke: black;

@@ -3,182 +3,33 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>A Re-Re-Recreation of Gapminder's Wealth & Health of Nations</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
-  <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.8.9/jquery.csv.js"></script>
-  <script src="main.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
 </head>
 
 <body>
   <h1>The Wealth & Health of Nations</h1>
   <p>A Re-Re-Recreation of Gapminder's</p>
-
-  <svg width="1000" height="500">
-    <g transform="translate(39.5,19.5)">
-      <g class="x axis" transform="translate(0,461)">
-        <g class="tick" transform="translate(0,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;">300</text>
-        </g>
-        <g class="tick" transform="translate(46.575715142841375,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;">400</text>
-        </g>
-        <g class="tick" transform="translate(82.70264649242914,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(112.2204986869136,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(137.17748711347994,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(158.79621382975495,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(177.86528223098583,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(194.92314517934273,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;">1,000</text>
-        </g>
-        <g class="tick" transform="translate(307.14364386625635,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;">2,000</text>
-        </g>
-        <g class="tick" transform="translate(372.7884274103284,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;">3,000</text>
-        </g>
-        <g class="tick" transform="translate(419.36414255317,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;">4,000</text>
-        </g>
-        <g class="tick" transform="translate(455.4910739027579,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(485.008926097242,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(509.9659145238085,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(531.5846412400836,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(550.6537096413143,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(567.7115725896715,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;">10,000</text>
-        </g>
-        <g class="tick" transform="translate(679.9320712765847,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;">20,000</text>
-        </g>
-        <g class="tick" transform="translate(745.5768548206569,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;">30,000</text>
-        </g>
-        <g class="tick" transform="translate(792.1525699634983,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;">40,000</text>
-        </g>
-        <g class="tick" transform="translate(828.2795013130865,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(857.7973535075705,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(882.754341934137,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(904.3730686504119,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(923.4421370516428,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;"></text>
-        </g>
-        <g class="tick" transform="translate(940.5,0)" style="opacity: 1;">
-          <line y2="6" x2="0"></line>
-          <text y="9" x="0" dy=".71em" style="text-anchor: middle;">100,000</text>
-        </g>
-        <path class="domain" d="M0,6V0H940.5V6"></path>
-      </g>
-      <g class="y axis">
-        <g class="tick" transform="translate(0,461)" style="opacity: 1;">
-          <line x2="-6" y2="0"></line>
-          <text x="-9" y="0" dy=".32em" style="text-anchor: end;">10</text>
-        </g>
-        <g class="tick" transform="translate(0,399.5333333333333)" style="opacity: 1;">
-          <line x2="-6" y2="0"></line>
-          <text x="-9" y="0" dy=".32em" style="text-anchor: end;">20</text>
-        </g>
-        <g class="tick" transform="translate(0,338.06666666666666)" style="opacity: 1;">
-          <line x2="-6" y2="0"></line>
-          <text x="-9" y="0" dy=".32em" style="text-anchor: end;">30</text>
-        </g>
-        <g class="tick" transform="translate(0,276.6)" style="opacity: 1;">
-          <line x2="-6" y2="0"></line>
-          <text x="-9" y="0" dy=".32em" style="text-anchor: end;">40</text>
-        </g>
-        <g class="tick" transform="translate(0,215.13333333333333)" style="opacity: 1;">
-          <line x2="-6" y2="0"></line>
-          <text x="-9" y="0" dy=".32em" style="text-anchor: end;">50</text>
-        </g>
-        <g class="tick" transform="translate(0,153.66666666666663)" style="opacity: 1;">
-          <line x2="-6" y2="0"></line>
-          <text x="-9" y="0" dy=".32em" style="text-anchor: end;">60</text>
-        </g>
-        <g class="tick" transform="translate(0,92.19999999999999)" style="opacity: 1;">
-          <line x2="-6" y2="0"></line>
-          <text x="-9" y="0" dy=".32em" style="text-anchor: end;">70</text>
-        </g>
-        <g class="tick" transform="translate(0,30.73333333333335)" style="opacity: 1;">
-          <line x2="-6" y2="0"></line>
-          <text x="-9" y="0" dy=".32em" style="text-anchor: end;">80</text>
-        </g>
-        <path class="domain" d="M-6,0H0V461H-6"></path>
-      </g>
-    </g>
-  </svg>
+  <svg width="1000" height="500"></svg>
   <p id="explanation">
     This chart visualizes a time series of scatterplots.
-    <br> Each scatterplot present the income per capita and life expectancy of nations at certain year, and now they are superimposed
+    <br> Each scatterplot present the income per capita and life expectancy of nations at certain year, and now they are combined
     into this single display.
   </p>
   <p>Interact to view it lively.</p>
   <ul>
     <li> Move mouse horizontally on the year number to quickly walk through the years.</li>
-    <li> Hover over the circles to view the history record of the nation.</li>
+    <li> Hover over the circles to view the history data of the nation.</li>
     <li> Drag the circles to change the year at your pace.</li>
   </ul>
   <p> A Re-Re-Recreation of Gapminder's Wealth and Health of Nations. </p>
-  <p>
-    Following
-    <a href="http://romsson.github.io/dragit/example/nations.html">this example</a>. Hand coded without using
-    <a href="https://d3js.org/">D3.js</a>.
+  <p> Following
+    <a href="http://romsson.github.io/dragit/example/nations.html">romsson's example</a>
+    and
+    <a href="https://bost.ocks.org/mike/nations/">Mike Bostock's example</a>.
   </p>
+  <script src="main.js"></script>
 </body>
 
 </html>
